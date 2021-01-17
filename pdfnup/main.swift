@@ -1,6 +1,6 @@
 import Foundation
 
-let help = "Usage: pdfnup --output <out> --cover <file> --details <file.json>";
+let help = "Usage: pdfnup --output <out> --cover <file> --details <file.json> [--no-page-numbers]";
 
 do {
     var arguments = CommandLine.arguments.dropFirst()
@@ -33,7 +33,9 @@ do {
         throw CommandError.couldNotDecodeFile(details)
     }
 
-    let action = CombinePDFs(cover: cover, fileDetails: fileDetails, output: output)
+    let drawNumbers = !arguments.contains(where: { $0 == "--no-page-numbers" })
+
+    let action = CombinePDFs(cover: cover, fileDetails: fileDetails, output: output, drawNumbers: drawNumbers)
     try action.run()
 
     exit(0)

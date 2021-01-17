@@ -5,6 +5,7 @@ struct CombinePDFs {
     var cover: URL?
     var fileDetails: [FileDetail]
     var output: URL
+    var drawNumbers: Bool
 
     func run() throws {
         let document = PDFDocument()
@@ -50,7 +51,7 @@ struct CombinePDFs {
                     )
                     index += 6
                 }
-                newPage = NumberedPage(page: newPage!, number: document.pageCount)
+                newPage = NumberedPage(page: newPage!, number: document.pageCount, drawNumbers: drawNumbers)
                 titlePage = titlePage ?? newPage
                 document.addPage(newPage!)
             }
@@ -112,10 +113,12 @@ private class NumberedPage: PDFPage {
     
     let page: PDFPage
     let pageNumber: Int
+    let drawNumbers: Bool
     
-    init(page: PDFPage, number: Int) {
-        self.page = page;
+    init(page: PDFPage, number: Int, drawNumbers: Bool) {
+        self.page = page
         self.pageNumber = number
+        self.drawNumbers = drawNumbers
         super.init()
         setBounds(CGRect(x: 0, y: 0, width: 612, height: 792), for: .mediaBox)
     }
@@ -154,24 +157,25 @@ private class NumberedPage: PDFPage {
         // Draw original content
         page.draw(with: box, to: context)
 
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.alignment = .right
+        if (self.drawNumbers) {
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.alignment = .right
 
 
-        let attributes: [NSAttributedString.Key: Any] = [
-            NSAttributedString.Key.paragraphStyle:  paragraphStyle,
-            NSAttributedString.Key.foregroundColor: #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1),
-            NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14)
-        ]
+            let attributes: [NSAttributedString.Key: Any] = [
+                NSAttributedString.Key.paragraphStyle:  paragraphStyle,
+                NSAttributedString.Key.foregroundColor: #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1),
+                NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14)
+            ]
 
-        let attrString = NSAttributedString(string: String(pageNumber + 1),
-                                       attributes: attributes)
+            let attrString = NSAttributedString(string: String(pageNumber + 1),
+                                           attributes: attributes)
 
 
-        let rect = CGRect(x: 480, y: 730, width: 100, height: 100)
-        drawIn(rect: rect, attribString: attrString, context: context)
+            let rect = CGRect(x: 480, y: 730, width: 100, height: 100)
+            drawIn(rect: rect, attribString: attrString, context: context)
+        }
     }
-
 }
 
 private class OneUpPage: PDFPage {
